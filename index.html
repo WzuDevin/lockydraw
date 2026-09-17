@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>抽籤小程式</title>
+    <style>
+      :root {
+        --bg: #f5f7ff;
+        --panel: #ffffff;
+        --primary: #5b6cff;
+        --primary-dark: #4253d6;
+        --accent: #ffb703;
+        --text: #1f2a44;
+        --muted: #68758d;
+        --border: #e1e7ff;
+        --shadow: 0 16px 40px rgba(91, 108, 255, 0.14);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #edf2ff 0%, #f9fbff 100%);
+        font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+        color: var(--text);
+      }
+
+      .app {
+        width: min(900px, 92vw);
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        padding: 28px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        text-align: center;
+        font-size: clamp(2rem, 3vw, 3rem);
+      }
+
+      .subtitle {
+        margin: 0 0 24px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 1rem;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 22px;
+      }
+
+      .panel {
+        background: #f8faff;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 20px;
+      }
+
+      .label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 700;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 210px;
+        resize: vertical;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px 14px;
+        font-size: 1rem;
+        line-height: 1.8;
+        background: white;
+        color: var(--text);
+      }
+
+      textarea:focus {
+        outline: 2px solid rgba(91, 108, 255, 0.2);
+        border-color: var(--primary);
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      button {
+        border: none;
+        border-radius: 12px;
+        padding: 12px 18px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      .primary {
+        background: var(--primary);
+        color: white;
+      }
+
+      .primary:hover {
+        background: var(--primary-dark);
+      }
+
+      .secondary {
+        background: #edf2ff;
+        color: var(--primary-dark);
+      }
+
+      .result-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 186px;
+        text-align: center;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #ffffff 0%, #edf2ff 100%);
+        border: 1px solid var(--border);
+        font-size: clamp(2.2rem, 5vw, 4rem);
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        color: var(--primary-dark);
+        padding: 18px;
+        word-break: break-word;
+      }
+
+      .meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-top: 18px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .chip {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #edf2ff;
+        color: var(--primary-dark);
+        font-weight: 700;
+      }
+
+      .list {
+        margin-top: 18px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        min-height: 46px;
+      }
+
+      .tag {
+        background: #eef5ff;
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 7px 12px;
+        font-size: 0.9rem;
+      }
+
+      .history {
+        margin-top: 20px;
+      }
+
+      .history h3 {
+        margin: 0 0 10px;
+        font-size: 1.05rem;
+      }
+
+      .history-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .history-list li {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        color: var(--text);
+      }
+
+      @media (max-width: 760px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .app {
+          padding: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <h1>抽籤小程式</h1>
+      <p class="subtitle">輸入名字後，點擊開始抽籤，隨機決定幸運者。</p>
+
+      <div class="grid">
+        <div class="panel">
+          <label class="label" for="namesInput">抽獎名單</label>
+          <textarea id="namesInput" placeholder="每行一個名字&#10;例如：&#10;小明&#10;小美&#10;阿傑&#10;琪琪">小明
+小美
+阿傑
+琪琪
+王大明
+小華</textarea>
+
+          <div class="actions">
+            <button class="primary" id="drawBtn" type="button">開始抽籤</button>
+            <button class="secondary" id="sampleBtn" type="button">填入範例</button>
+            <button class="secondary" id="clearBtn" type="button">清除名單</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="result-box" id="resultBox">抽籤中</div>
+
+          <div class="meta">
+            <span>目前人數</span>
+            <span class="chip" id="countChip">0</span>
+          </div>
+
+          <div class="list" id="nameList"></div>
+        </div>
+      </div>
+
+      <div class="history panel" style="margin-top: 22px;">
+        <h3>抽籤紀錄</h3>
+        <ul class="history-list" id="historyList">
+          <li>目前還沒有抽籤紀錄。</li>
+        </ul>
+      </div>
+    </div>
+
+    <script>
+      const namesInput = document.getElementById('namesInput');
+      const resultBox = document.getElementById('resultBox');
+      const countChip = document.getElementById('countChip');
+      const nameList = document.getElementById('nameList');
+      const historyList = document.getElementById('historyList');
+      const drawBtn = document.getElementById('drawBtn');
+      const sampleBtn = document.getElementById('sampleBtn');
+      const clearBtn = document.getElementById('clearBtn');
+
+      function getNames() {
+        return namesInput.value
+          .split(/\n|,|，/)
+          .map((item) => item.trim())
+          .filter((item) => item.length > 0);
+      }
+
+      function renderNames() {
+        const names = getNames();
+        countChip.textContent = names.length;
+
+        if (names.length === 0) {
+          nameList.innerHTML = '<span class="tag">尚未輸入名單</span>';
+          return;
+        }
+
+        nameList.innerHTML = names
+          .map((name) => `<span class="tag">${name}</span>`)
+          .join('');
+      }
+
+      function fillSample() {
+        namesInput.value = '小明\n小美\n阿傑\n琪琪\n王大明\n小華\n安安\n寶寶';
+        renderNames();
+      }
+
+      function clearNames() {
+        namesInput.value = '';
+        resultBox.textContent = '抽籤中';
+        renderNames();
+      }
+
+      function addHistory(name) {
+        const item = document.createElement('li');
+        item.textContent = `幸運者：${name}`;
+
+        const firstItem = historyList.querySelector('li');
+        if (firstItem && firstItem.textContent.includes('目前還沒有抽籤紀錄')) {
+          historyList.innerHTML = '';
+        }
+
+        historyList.prepend(item);
+      }
+
+      function startDraw() {
+        const names = getNames();
+
+        if (names.length === 0) {
+          alert('請先輸入至少一個名字。');
+          namesInput.focus();
+          return;
+        }
+
+        if (drawBtn.disabled) return;
+
+        drawBtn.disabled = true;
+        let step = 0;
+        const maxSteps = 24;
+
+        const interval = setInterval(() => {
+          const randomName = names[Math.floor(Math.random() * names.length)];
+          resultBox.textContent = randomName;
+          step += 1;
+
+          if (step >= maxSteps) {
+            clearInterval(interval);
+            const winner = names[Math.floor(Math.random() * names.length)];
+            resultBox.textContent = winner;
+            addHistory(winner);
+            drawBtn.disabled = false;
+          }
+        }, 90);
+      }
+
+      namesInput.addEventListener('input', renderNames);
+      drawBtn.addEventListener('click', startDraw);
+      sampleBtn.addEventListener('click', fillSample);
+      clearBtn.addEventListener('click', clearNames);
+
+      renderNames();
+    </script>
+  </body>
+</html>
